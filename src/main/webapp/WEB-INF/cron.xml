@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cronentries>
+    <cron>
+        <url>/cron/process/events</url>
+        <description>Daily Huddle Events Processor</description>
+        <schedule>every day 08:00</schedule>
+        <timezone>Asia/Kolkata</timezone>
+    </cron>
+</cronentries>
