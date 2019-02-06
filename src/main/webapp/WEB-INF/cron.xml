@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <cronentries>
     <cron>
-        <url>/cron/process/events</url>
-        <description>Daily Huddle Events Processor</description>
-        <schedule>every day 08:00</schedule>
+        <url>/cron/process/pendingJobs</url>
+        <description>Daily Huddle Pending Jobs Processor</description>
+        <!--<schedule>every day 13:15</schedule>-->
+        <schedule>every 2 mins</schedule>
         <timezone>Asia/Kolkata</timezone>
+        <!--<retry-parameters>-->
+            <!--<min-backoff-seconds>2</min-backoff-seconds>-->
+            <!--<max-backoff-seconds>5</max-backoff-seconds>-->
+        <!--</retry-parameters>-->
     </cron>
 </cronentries>

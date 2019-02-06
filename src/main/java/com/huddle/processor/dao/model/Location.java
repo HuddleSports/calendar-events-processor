@@ -1,9 +1,9 @@
 package com.huddle.processor.dao.model;
 
 import lombok.Builder;
-import lombok.Value;
+import lombok.Data;
 
-@Value
+@Data
 @Builder
 public class Location {
   int id;

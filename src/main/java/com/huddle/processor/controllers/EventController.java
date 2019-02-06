@@ -34,6 +34,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.huddle.processor.shared.TimeUtils.getDateTime;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE;
 
 @RestController
@@ -53,6 +54,7 @@ public class EventController {
   public String processEvents(final String startTimeIncl,
                               final String endTimeExl,
                               final String timezoneOffset) throws IOException {
+    log.info("Starting processing of events for startTimeIncl={} endTimeExl={} timezoneOffset={}", startTimeIncl, endTimeExl, timezoneOffset);
     final List<Calendar> huddleGoogleCalendars = calendarService.getCalendars()
         .stream()
         .filter(calendar -> calendar.getSummary().contains("Huddle"))
@@ -61,7 +63,7 @@ public class EventController {
     updateDBLocations(huddleGoogleCalendars);
     final List<Location> dbLocations = locationDao.getLocations();
     //TODO(Adi): should do in parallel
-    for (Location dbLocation: dbLocations) {
+    for (Location dbLocation : dbLocations) {
       processEvents(startTimeIncl, endTimeExl, timezoneOffset, dbLocation);
     }
     return "Events Processed!";
@@ -91,20 +93,36 @@ public class EventController {
         calendarService.getEvents(startTimeIncl, endTimeExl, timezoneOffset, location.getCalendarId());
     final List<Event> newDBEvents = googleEvents
         .stream()
-        .map(googleEvent -> Event.builder()
-            .locationId(location.getId())
-            .description(googleEvent.getDescription())
-            .organizer(googleEvent.getDescription().split(",")[0])
-            .type(googleEvent.getDescription().split(",")[1].toUpperCase())
-            .price(Integer.parseInt(googleEvent.getDescription().split(",")[2]))
-            .startTime(convertTimeZoneTimeToLocalTimeZone(googleEvent.getStartTime()))
-            .endTime(convertTimeZoneTimeToLocalTimeZone(googleEvent.getEndTime()))
-            .build())
+        .map(googleEvent -> {
+          Event.EventBuilder builder = Event.builder()
+              .locationId(location.getId())
+              .description(googleEvent.getDescription())
+              .startTime(convertTimeZoneTimeToLocalTimeZone(googleEvent.getStartTime()))
+              .endTime(convertTimeZoneTimeToLocalTimeZone(googleEvent.getEndTime()));
+          String[] descriptionParts = googleEvent.getDescription().split(",");
+          if (descriptionParts != null) {
+            if (descriptionParts.length > 0 && descriptionParts[0] != null) {
+              builder.organizer(descriptionParts[0]);
+            }
+            if (descriptionParts.length > 1 && descriptionParts[1] != null) {
+              builder.type(descriptionParts[1].toUpperCase());
+            }
+            if (descriptionParts.length > 2 && descriptionParts[2] != null) {
+              try {
+                builder.price(Integer.parseInt(descriptionParts[2]));
+              } catch (Exception e) {
+                log.error("Failed to set price for description={}", googleEvent.getDescription(), e);
+              }
+            }
+          }
+          return builder.build();
+        })
         .collect(Collectors.toList());
     eventDao.addEvents(newDBEvents);
   }
 
   private void updateDBLocations(List<Calendar> huddleGoogleCalendars) {
+    log.info("Updating db locations for huddleGoogleCalendars={}", huddleGoogleCalendars.size());
     final List<Location> dbLocations = locationDao.getLocations();
     final List<Location> dbNewLocations = huddleGoogleCalendars
         .stream()
@@ -124,14 +142,18 @@ public class EventController {
     locationDao.addLocations(dbNewLocations);
   }
 
-  private ZonedDateTime getDateTime(final String dateTime,
-                                    final String timeZoneOffset) {
-    return ZonedDateTime.parse(String.format("%s+%s", dateTime, timeZoneOffset));
-  }
-
   private String convertTimeZoneTimeToLocalTimeZone(String timeZoneTime) {
     ZonedDateTime zonedDateTime = ZonedDateTime.parse(timeZoneTime);
     final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     return zonedDateTime.format(dateTimeFormatter);
+  }
+
+  @GetMapping("/calendars")
+  public List<Calendar> getCalendars() throws IOException {
+    return calendarService.getCalendars()
+        .stream()
+        .filter(calendar -> calendar.getSummary().contains("Huddle"))
+        .collect(Collectors.toList());
+
   }
 }

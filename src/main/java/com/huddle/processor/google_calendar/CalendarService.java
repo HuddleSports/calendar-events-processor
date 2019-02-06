@@ -6,6 +6,7 @@ import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Events;
 import com.huddle.processor.google_calendar.response.Calendar;
 import com.huddle.processor.google_calendar.response.Event;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
+@Log4j2
 public class CalendarService {
 
   private final com.google.api.services.calendar.Calendar calendarClient;
@@ -23,6 +25,7 @@ public class CalendarService {
   }
 
   public List<Calendar> getCalendars() throws IOException {
+    log.info("Starting fetching of Google Calendars");
     com.google.api.services.calendar.Calendar.CalendarList.List calendarsList = calendarClient.calendarList().list();
 
     CalendarList calendarList = calendarsList.execute();
@@ -43,6 +46,7 @@ public class CalendarService {
             .build());
       }
     }
+    log.info("Fetched googleCalendars={}", calendars.size());
     return calendars;
   }
 
