@@ -1,5 +1,16 @@
 # Calendar Events Processor
 
+## Table of Contents
+
+   * **[Description](#description)**
+   * **[Architecture](#architecture)**
+     * [Google Calendars](#google-calendars)
+     * [Huddle DB](#huddle-db)
+     * [Pending Jobs](#pending-jobs)
+     * [Event Processor APIs](#event-processor-apis)
+   * **[Connect To Huddle DB For Analytics](#connect-to-huddle-db-for-analytics)**
+
+
 ## Description
 Calendar Events Processor is an ETL service which takes data in Google Calendar as source of truth and stores it in MySql Database.
 This service is hosted on Google Cloud using App Engine as the Application Platform and Cloud SQL as database.
