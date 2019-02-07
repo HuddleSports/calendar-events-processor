@@ -13,6 +13,7 @@ public class PendingJob {
   Status status;
   String created;
   String modified;
+  Integer locationId;
 
   public enum Status {
     PENDING,

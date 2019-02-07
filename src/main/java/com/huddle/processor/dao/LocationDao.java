@@ -39,6 +39,10 @@ public class LocationDao {
     return jdbcTemplate.query(query, locationRowMapper);
   }
 
+  public Location getLocation(int id) {
+    return locationCrud.read((long) id);
+  }
+
   public void addLocations(final List<Location> locations) {
     if (CollectionUtils.isEmpty(locations)) {
       return;

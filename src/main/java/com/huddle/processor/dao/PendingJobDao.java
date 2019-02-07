@@ -1,6 +1,5 @@
 package com.huddle.processor.dao;
 
-import com.huddle.processor.dao.model.Location;
 import com.huddle.processor.dao.model.PendingJob;
 import org.simpleflatmapper.jdbc.spring.JdbcTemplateCrud;
 import org.simpleflatmapper.jdbc.spring.JdbcTemplateMapperFactory;
