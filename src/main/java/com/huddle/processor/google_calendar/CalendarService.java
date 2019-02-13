@@ -7,6 +7,7 @@ import com.google.api.services.calendar.model.Events;
 import com.huddle.processor.google_calendar.response.Calendar;
 import com.huddle.processor.google_calendar.response.Event;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -18,11 +19,8 @@ import java.util.List;
 @Log4j2
 public class CalendarService {
 
-  private final com.google.api.services.calendar.Calendar calendarClient;
-
-  public CalendarService() throws GeneralSecurityException, IOException {
-    calendarClient = CalendarClientProvider.get();
-  }
+  @Autowired
+  private com.google.api.services.calendar.Calendar calendarClient;
 
   public List<Calendar> getCalendars() throws IOException {
     log.info("Starting fetching of Google Calendars");

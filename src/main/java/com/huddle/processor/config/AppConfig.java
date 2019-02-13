@@ -1,13 +1,20 @@
 package com.huddle.processor.config;
 
+import com.google.api.services.calendar.Calendar;
+import com.huddle.processor.google.api.client.extensions.jdo.JdoDataStoreFactory;
+import com.huddle.processor.google_calendar.CalendarClientProvider;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Scope;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 
 @Configuration
 public class AppConfig {
@@ -41,5 +48,11 @@ public class AppConfig {
   @Bean
   public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
     return new JdbcTemplate(dataSource);
+  }
+
+  @Bean
+  @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
+  public Calendar getCalendar(CalendarClientProvider calendarClientProvider) throws GeneralSecurityException, IOException {
+    return calendarClientProvider.get();
   }
 }
