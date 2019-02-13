@@ -35,14 +35,3 @@ These are cron jobs with metadata information present in Pending Jobs database t
 1) `/sync/calendars`: This looks at the all the calendars present for the centralized Google Account and creates necessary Location metadata records.
 
 2) `/process/events`: This syncs Google calendar events in database for specific start/end date and location. Pending Jobs cron jobs calls this API.
-
-## Connect To Huddle DB For Analytics
-
-- [Install MySQL Proxy](https://cloud.google.com/sql/docs/mysql/connect-admin-proxy#install)
-- Start proxy by executing following command in terminal.
-
-    `./cloud_sql_proxy -instances=huddle-quick-solutions:us-central1:huddle-events-processor=tcp:330`
-- Install your preferred MySQL client. Following are the connection details
-
-    `mysql -u data-analytics -p --host 127.0.0.1 Huddle` 
-     
