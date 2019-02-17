@@ -14,6 +14,8 @@ public class PendingJob {
   String created;
   String modified;
   Integer locationId;
+  //Todo(Adi): Add to database
+  Boolean registerCallback;
 
   public enum Status {
     PENDING,

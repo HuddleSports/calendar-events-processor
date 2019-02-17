@@ -56,7 +56,8 @@ public class CronJobController {
         String.format("%sT00:00:00.000", startDateInc),
         String.format("%sT00:00:00.000", endDateExl),
         IST_TIMEZONE_OFFSET,
-        pendingJob.getLocationId());
+        pendingJob.getLocationId(),
+        pendingJob.getRegisterCallback());
 
     PendingJob.Status updatedStatus = pendingJob.getStatus();
     if (pendingJob.getEndDateExl() != null) {

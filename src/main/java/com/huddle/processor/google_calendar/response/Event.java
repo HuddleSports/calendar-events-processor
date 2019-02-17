@@ -9,4 +9,5 @@ public class Event {
   String startTime;
   String endTime;
   String description;
+  String calendarEventId;
 }

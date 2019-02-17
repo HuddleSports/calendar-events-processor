@@ -54,6 +54,7 @@ public class CalendarController {
             .filter(dbLocation -> dbLocation.getCalendarId().equalsIgnoreCase(huddleGoogleCalendar.getId()))
             .findFirst()
             .isPresent())
+        //Todo(Adi) from description Object Mapper
         .map(huddleGoogleCalendar -> Location
             .builder()
             .city(huddleGoogleCalendar.getSummary().split(",")[1])
@@ -62,7 +63,7 @@ public class CalendarController {
             .calendarId(huddleGoogleCalendar.getId())
             .build())
         .collect(Collectors.toList());
-    locationDao.addLocations(dbNewLocations);
+    locationDao.upsertLocations(dbNewLocations);
   }
 
 }

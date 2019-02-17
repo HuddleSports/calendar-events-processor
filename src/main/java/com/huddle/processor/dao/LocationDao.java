@@ -1,5 +1,6 @@
 package com.huddle.processor.dao;
 
+import com.google.common.base.Preconditions;
 import com.huddle.processor.dao.model.Location;
 import org.simpleflatmapper.jdbc.spring.JdbcTemplateCrud;
 import org.simpleflatmapper.jdbc.spring.JdbcTemplateMapperFactory;
@@ -9,7 +10,9 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class LocationDao {
@@ -39,14 +42,29 @@ public class LocationDao {
     return jdbcTemplate.query(query, locationRowMapper);
   }
 
+  public Location getLocation(String calendarId) throws IOException {
+    String query = "Select * " +
+        "from Location " +
+        "where " +
+        "calendarId = ? ";
+
+    Object[] params = new Object[]{calendarId};
+
+    List<Location> locations = jdbcTemplate.query(query, params, locationRowMapper);
+    if (CollectionUtils.isEmpty(locations)) {
+      throw new IOException(String.format("CalendarId=%s not found in database", calendarId));
+    }
+    return locations.get(0);
+  }
+
   public Location getLocation(int id) {
     return locationCrud.read((long) id);
   }
 
-  public void addLocations(final List<Location> locations) {
+  public void upsertLocations(final List<Location> locations) {
     if (CollectionUtils.isEmpty(locations)) {
       return;
     }
-    locationCrud.create(locations);
+    locationCrud.createOrUpdate(locations);
   }
 }

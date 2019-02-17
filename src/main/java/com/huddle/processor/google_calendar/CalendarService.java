@@ -3,6 +3,7 @@ package com.huddle.processor.google_calendar;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.CalendarList;
 import com.google.api.services.calendar.model.CalendarListEntry;
+import com.google.api.services.calendar.model.Channel;
 import com.google.api.services.calendar.model.Events;
 import com.huddle.processor.google_calendar.response.Calendar;
 import com.huddle.processor.google_calendar.response.Event;
@@ -11,9 +12,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @Log4j2
@@ -21,6 +22,9 @@ public class CalendarService {
 
   @Autowired
   private com.google.api.services.calendar.Calendar calendarClient;
+
+  @Autowired
+  private Channel eventsChannel;
 
   public List<Calendar> getCalendars() throws IOException {
     log.info("Starting fetching of Google Calendars");
@@ -48,6 +52,26 @@ public class CalendarService {
     return calendars;
   }
 
+  public Event getEvent(final String calendarId,
+                        final String eventId) throws IOException {
+    com.google.api.services.calendar.model.Event event =
+        calendarClient.events().get(calendarId, eventId).execute();
+    return createEvent(event);
+  }
+
+  public void watchEvents(final String startTimeIncl,
+                          final String endTimeExl,
+                          final String timezoneOffset,
+                          final String calendarId) throws IOException {
+    com.google.api.services.calendar.Calendar.Events.Watch watchEvents =
+        calendarClient.events().watch(calendarId, eventsChannel)
+        .setTimeMin(getDateTime(startTimeIncl, timezoneOffset))
+        .setTimeMax(getDateTime(endTimeExl, timezoneOffset))
+        .setOrderBy("startTime")
+        .setSingleEvents(true);
+    watchEvents.execute();
+  }
+
   public List<Event> getEvents(final String startTimeIncl,
                                final String endTimeExl,
                                final String timezoneOffset,
@@ -60,27 +84,29 @@ public class CalendarService {
 
     Events events = eventsList.execute();
     List<com.google.api.services.calendar.model.Event> items = events.getItems();
-    List<Event> calendarEvents = new ArrayList<>();
-    if (!items.isEmpty()) {
-      for (com.google.api.services.calendar.model.Event event : items) {
-        DateTime start = event.getStart().getDateTime();
-        if (start == null) {
-          start = event.getStart().getDate();
-        }
-        DateTime end = event.getEnd().getDateTime();
-        if (end == null) {
-          end = event.getEnd().getDate();
-        }
 
-        calendarEvents.add(Event
-            .builder()
-            .startTime(start.toString())
-            .endTime(end.toString())
-            .description(event.getSummary())
-            .build());
-      }
+    return items.stream()
+        .map(event -> createEvent(event))
+        .collect(Collectors.toList());
+  }
+
+  private Event createEvent(com.google.api.services.calendar.model.Event event) {
+    DateTime start = event.getStart().getDateTime();
+    if (start == null) {
+      start = event.getStart().getDate();
     }
-    return calendarEvents;
+    DateTime end = event.getEnd().getDateTime();
+    if (end == null) {
+      end = event.getEnd().getDate();
+    }
+
+    return Event
+        .builder()
+        .startTime(start.toString())
+        .endTime(end.toString())
+        .description(event.getSummary())
+        .calendarEventId(event.getId())
+        .build();
   }
 
   private DateTime getDateTime(final String dateTime,

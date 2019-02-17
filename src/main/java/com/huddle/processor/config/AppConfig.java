@@ -1,6 +1,7 @@
 package com.huddle.processor.config;
 
 import com.google.api.services.calendar.Calendar;
+import com.google.api.services.calendar.model.Channel;
 import com.huddle.processor.google.api.client.extensions.jdo.JdoDataStoreFactory;
 import com.huddle.processor.google_calendar.CalendarClientProvider;
 import com.zaxxer.hikari.HikariConfig;
@@ -54,5 +55,14 @@ public class AppConfig {
   @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
   public Calendar getCalendar(CalendarClientProvider calendarClientProvider) throws GeneralSecurityException, IOException {
     return calendarClientProvider.get();
+  }
+
+  @Bean
+  @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
+  //Todo(Adi): provide qualifier
+  public Channel getChannel() {
+    Channel eventsChannel = new Channel();
+    eventsChannel.setAddress("");
+    return eventsChannel;
   }
 }
