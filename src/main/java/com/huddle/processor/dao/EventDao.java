@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class EventDao {
@@ -49,10 +50,17 @@ public class EventDao {
     return jdbcTemplate.query(query, params, eventRowMapper);
   }
 
-  public void addEvents(final List<Event> events) {
+  public void upsertEvents(final List<Event> events) {
     if (CollectionUtils.isEmpty(events)) {
       return;
     }
-    eventCrud.create(events);
+    eventCrud.createOrUpdate(events);
+  }
+
+  public void upsertEvent(final Event event) {
+    if (Objects.isNull(event)) {
+      return;
+    }
+    eventCrud.createOrUpdate(event);
   }
 }

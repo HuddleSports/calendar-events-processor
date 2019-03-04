@@ -1,8 +1,15 @@
 package com.huddle.processor.config;
 
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.http.HttpRequestFactory;
+import com.google.api.client.http.HttpTransport;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.calendar.Calendar;
-import com.huddle.processor.google.api.client.extensions.jdo.JdoDataStoreFactory;
 import com.huddle.processor.google_calendar.CalendarClientProvider;
+import com.huddle.processor.google_calendar.GoogleCredentialProvider;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -23,6 +30,8 @@ public class AppConfig {
   private static final String DB_USER = "root";
   private static final String DB_PASS = "Huddle123$%";
   private static final String DB_NAME = "Huddle";
+  private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+  private static final JsonFactory JSON_FACTORY = new JacksonFactory();
 
   @Bean
   public DataSource dataSource() {
@@ -48,6 +57,12 @@ public class AppConfig {
   @Bean
   public JdbcTemplate jdbcTemplate(@Qualifier("dataSource") DataSource dataSource) {
     return new JdbcTemplate(dataSource);
+  }
+
+  @Bean
+  @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
+  public Credential getCredential(GoogleCredentialProvider googleCredentialProvider) throws GeneralSecurityException, IOException {
+    return googleCredentialProvider.get();
   }
 
   @Bean

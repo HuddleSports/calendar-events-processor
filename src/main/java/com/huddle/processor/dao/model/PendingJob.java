@@ -14,6 +14,8 @@ public class PendingJob {
   String created;
   String modified;
   Integer locationId;
+  Boolean registerCallback;
+  int lookAheadDays;
 
   public enum Status {
     PENDING,

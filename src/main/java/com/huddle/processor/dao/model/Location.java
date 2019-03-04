@@ -7,6 +7,7 @@ import lombok.Data;
 @Builder
 public class Location {
   int id;
+  String name;
   String city;
   String state;
   String address;
