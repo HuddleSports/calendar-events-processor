@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -21,18 +22,15 @@ public class EventNotificationController {
   public String handleNotification(@RequestHeader(name = "X-Goog-Channel-ID") String channelId,
                                    @RequestHeader(name = "X-Goog-Resource-ID") String resourceId,
                                    @RequestHeader(name = "X-Goog-Resource-URI") String resourceURI,
-                                   @RequestHeader(name = "X-Goog-Resource-State") String state) throws IOException {
+                                   @RequestHeader(name = "X-Goog-Resource-State") String state) throws IOException, URISyntaxException {
     log.info("Received notification with channelId={}, resourceId={}, resourceURI={}, state={}",
         channelId, resourceId, resourceURI, state);
     if (!state.equalsIgnoreCase("exists")) {
       return "Ignoring Notification as not in exists state";
     }
-    List<String> uriParts = Arrays.asList(resourceURI.split("/"));
-    if (!uriParts.get(uriParts.size() - 1).equalsIgnoreCase("events")) {
-      return "Ignoring unknown Notification";
-    }
-    String calendarId = uriParts.get(uriParts.size() - 2);
-    eventController.processEvent(resourceId, calendarId);
+    List<String> parts = Arrays.asList(resourceURI.split("/"));
+    String calendarId = parts.get(parts.size() - 2);
+    eventController.processEvents(calendarId, resourceURI);
     return "Successfully Handled Notification";
   }
 

@@ -1,10 +1,17 @@
 package com.huddle.processor.google_calendar;
 
+import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.http.*;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.JsonFactory;
+import com.google.api.client.json.JsonObjectParser;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.CalendarList;
 import com.google.api.services.calendar.model.CalendarListEntry;
 import com.google.api.services.calendar.model.Channel;
 import com.google.api.services.calendar.model.Events;
+import com.google.common.net.MediaType;
 import com.huddle.processor.google_calendar.response.Calendar;
 import com.huddle.processor.google_calendar.response.Event;
 import lombok.extern.log4j.Log4j2;
@@ -12,9 +19,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static com.google.common.net.MediaType.JSON_UTF_8;
 
 @Component
 @Log4j2
@@ -24,7 +37,7 @@ public class CalendarService {
   private com.google.api.services.calendar.Calendar calendarClient;
 
   @Autowired
-  private Channel eventsChannel;
+  private Credential credential;
 
   public List<Calendar> getCalendars() throws IOException {
     log.info("Starting fetching of Google Calendars");
@@ -63,6 +76,12 @@ public class CalendarService {
                           final String endTimeExl,
                           final String timezoneOffset,
                           final String calendarId) throws IOException {
+    final Channel eventsChannel = new Channel();
+    //To environment specific
+    eventsChannel.setAddress("https://huddle-quick-solutions.appspot.com/handle/notification");
+    eventsChannel.setType("web_hook");
+    eventsChannel.setExpiration(ZonedDateTime.now().plusDays(40).toInstant().toEpochMilli());
+    eventsChannel.setId(UUID.randomUUID().toString());
     com.google.api.services.calendar.Calendar.Events.Watch watchEvents =
         calendarClient.events().watch(calendarId, eventsChannel)
         .setTimeMin(getDateTime(startTimeIncl, timezoneOffset))
@@ -80,10 +99,10 @@ public class CalendarService {
         .setTimeMin(getDateTime(startTimeIncl, timezoneOffset))
         .setTimeMax(getDateTime(endTimeExl, timezoneOffset))
         .setOrderBy("startTime")
+        .setShowDeleted(true)
         .setSingleEvents(true);
 
-    Events events = eventsList.execute();
-    List<com.google.api.services.calendar.model.Event> items = events.getItems();
+    List<com.google.api.services.calendar.model.Event> items = eventsList.execute().getItems();
 
     return items.stream()
         .map(event -> createEvent(event))
@@ -106,6 +125,7 @@ public class CalendarService {
         .endTime(end.toString())
         .description(event.getSummary())
         .calendarEventId(event.getId())
+        .calendarEventStatus(event.getStatus())
         .build();
   }
 

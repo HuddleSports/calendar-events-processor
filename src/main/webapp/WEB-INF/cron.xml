@@ -4,7 +4,6 @@
         <url>/cron/process/pendingJobs</url>
         <description>Daily Huddle Pending Jobs Processor</description>
         <!--<schedule>every 1 mins</schedule>-->
-        <schedule>every 6 hours</schedule>
-        <timezone>Asia/Kolkata</timezone>
+        <schedule>every 12 hours</schedule>
     </cron>
 </cronentries>

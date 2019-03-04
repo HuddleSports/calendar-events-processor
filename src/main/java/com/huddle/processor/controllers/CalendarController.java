@@ -33,7 +33,7 @@ public class CalendarController {
 
   }
 
-  @PostMapping("/sync/calendars")
+  @PostMapping("/calendars/sync")
   public List<Calendar> syncCalendars() throws IOException {
     final List<Calendar> huddleGoogleCalendars = calendarService.getCalendars()
         .stream()
@@ -46,14 +46,8 @@ public class CalendarController {
 
   private void updateDBLocations(List<Calendar> huddleGoogleCalendars) {
     log.info("Updating db locations for huddleGoogleCalendars={}", huddleGoogleCalendars.size());
-    final List<Location> dbLocations = locationDao.getLocations();
     final List<Location> dbNewLocations = huddleGoogleCalendars
         .stream()
-        .filter(huddleGoogleCalendar -> !dbLocations
-            .stream()
-            .filter(dbLocation -> dbLocation.getCalendarId().equalsIgnoreCase(huddleGoogleCalendar.getId()))
-            .findFirst()
-            .isPresent())
         //Todo(Adi) from description Object Mapper
         .map(huddleGoogleCalendar -> Location
             .builder()

@@ -47,9 +47,10 @@ public class CronJobController {
     LocalDate startDateInc = LocalDate.parse(pendingJob.getNextDate());
     LocalDate endDateExl = startDateInc.plusDays(1);
     ZonedDateTime todayDateTime = ZonedDateTime.now(ZoneId.of(String.format("+%s", IST_TIMEZONE_OFFSET)));
+    LocalDate processingEndDateExl = todayDateTime.toLocalDate().plusDays(pendingJob.getLookAheadDays());
     //validation
-    if(todayDateTime.toLocalDate().isEqual(startDateInc)) {
-      log.info("Processing startDateInc={} has not finished yet. Waiting for it to finish", startDateInc);
+    if(startDateInc.isAfter(processingEndDateExl)) {
+      log.info("Processing startDateInc={} is after processingEndDateExl={}. Waiting for it to finish", startDateInc, processingEndDateExl);
       return;
     }
     eventController.processEvents(

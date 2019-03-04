@@ -10,4 +10,5 @@ public class Event {
   String endTime;
   String description;
   String calendarEventId;
+  String calendarEventStatus;
 }

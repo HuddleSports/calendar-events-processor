@@ -30,17 +30,17 @@ public class PendingJobController {
   }
 
   private PendingJob createPendingJob(com.huddle.processor.dao.model.PendingJob dbPendingJob) {
-    final com.huddle.processor.controllers.response.Location location;
+    com.huddle.processor.controllers.response.Location location = null;
     if (Objects.nonNull(dbPendingJob.getLocationId())) {
       final Location dbLocation = locationDao.getLocation(dbPendingJob.getLocationId());
-      location = com.huddle.processor.controllers.response.Location.builder()
-          .address(dbLocation.getAddress())
-          .calendarId(dbLocation.getCalendarId())
-          .city(dbLocation.getCity())
-          .state(dbLocation.getState())
-          .build();
-    } else {
-      location = null;
+      if (Objects.nonNull(dbLocation)) {
+        location = com.huddle.processor.controllers.response.Location.builder()
+            .address(dbLocation.getAddress())
+            .calendarId(dbLocation.getCalendarId())
+            .city(dbLocation.getCity())
+            .state(dbLocation.getState())
+            .build();
+      }
     }
 
     return PendingJob.builder()

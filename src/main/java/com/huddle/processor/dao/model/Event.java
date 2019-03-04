@@ -7,13 +7,11 @@ import lombok.Data;
 @Builder
 public class Event {
   Integer id;
-  //Todo(Adi): Add to database
   String calendarEventId;
   String type;
-  //Todo(Adi): Add to database
-   String category;
-  //Todo(Adi): Add to database
+  String category;
   String status;
+  String calendarEventStatus;
   Integer price;
   String organizer;
   String startTime;

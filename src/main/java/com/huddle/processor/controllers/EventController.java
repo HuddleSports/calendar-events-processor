@@ -23,17 +23,25 @@ import com.huddle.processor.dao.model.Location;
 import com.huddle.processor.google_calendar.CalendarService;
 import lombok.NonNull;
 import lombok.extern.log4j.Log4j2;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.huddle.processor.shared.Constants.IST_TIMEZONE_OFFSET;
 
 @RestController
 @Log4j2
@@ -63,12 +71,26 @@ public class EventController {
     processEvents(startTimeIncl, endTimeExl, timezoneOffset, dbLocations, registerCallback);
   }
 
-  public void processEvent(final String eventId,
-                           final String calendarId) throws IOException {
+  public void processEvents(final String calendarId,
+                            final String eventsURI) throws IOException, URISyntaxException {
+    log.info("Processing events for calendarId={}, eventsURI={}", calendarId, eventsURI);
     Location dbLocation = locationDao.getLocation(calendarId);
-    com.huddle.processor.google_calendar.response.Event googleEvent =
-        calendarService.getEvent(calendarId, eventId);
-    eventDao.upsertEvent(createEvent(googleEvent, dbLocation));
+    String encodedURI = URLDecoder.decode(eventsURI, "UTF-8");
+    List<NameValuePair> params = URLEncodedUtils.parse(new URI(encodedURI), Charset.forName("UTF-8"));
+    String startTimeIncl = params.stream()
+        .filter(nameValuePair -> nameValuePair.getName().equalsIgnoreCase("timeMin"))
+        .findFirst()
+        .get()
+        .getValue()
+        .split(" ")[0];
+    String endTimeExl = params.stream()
+        .filter(nameValuePair -> nameValuePair.getName().equalsIgnoreCase("timeMax"))
+        .findFirst()
+        .get()
+        .getValue()
+        .split(" ")[0];
+
+    processEvents(startTimeIncl, endTimeExl, IST_TIMEZONE_OFFSET, Collections.singletonList(dbLocation), false);
   }
 
   private String processEvents(final String startTimeIncl,
@@ -110,6 +132,7 @@ public class EventController {
           .description(googleEvent.getDescription())
           .startTime(convertTimeZoneTimeToLocalTimeZone(googleEvent.getStartTime()))
           .endTime(convertTimeZoneTimeToLocalTimeZone(googleEvent.getEndTime()))
+          .calendarEventStatus(googleEvent.getCalendarEventStatus())
           .calendarEventId(googleEvent.getCalendarEventId());
       String[] descriptionParts = googleEvent.getDescription().split(",");
       if (descriptionParts != null) {
@@ -125,6 +148,12 @@ public class EventController {
           } catch (Exception e) {
             log.error("Failed to set price for description={}", googleEvent.getDescription(), e);
           }
+        }
+        if (descriptionParts.length > 3 && descriptionParts[3] != null) {
+          builder.category(descriptionParts[3].toUpperCase());
+        }
+        if (descriptionParts.length > 4 && descriptionParts[4] != null) {
+          builder.status(descriptionParts[4].toUpperCase());
         }
       }
       return builder.build();
